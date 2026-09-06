@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: nova-digital-shipping-agent
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: RESEND_API_KEY
+        sync: false
+      - key: NOVA_SENDER_NAME
+        value: Nova | Digital Shipping Agent
+      - key: NOVA_SENDER_EMAIL
+        value: onboarding@resend.dev

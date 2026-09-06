@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NOVA — Digital Shipping Agent</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121936; --panel2:#182144; --panel3:#0e1530;
+    --text:#f7f8ff; --muted:#9ca6c9; --line:#263056;
+    --blue:#6ea8ff; --blue2:#4d78ff; --green:#53d59a;
+    --yellow:#f4c95d; --red:#ff7070; --purple:#b58cff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#090e1b,#0c1224);color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  button,input,select,textarea{font:inherit}
+  .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+  .sidebar{position:sticky;top:0;height:100vh;padding:26px 18px;border-right:1px solid var(--line);background:rgba(9,14,27,.96)}
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:30px}
+  .logo{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;color:#081122;font-weight:900;
+    background:linear-gradient(135deg,#94bdff,#4a6dff);box-shadow:0 10px 35px rgba(67,101,255,.35)}
+  .brand h1{margin:0;font-size:18px;letter-spacing:.08em}.brand small{display:block;color:var(--muted);margin-top:3px}
+  nav button{width:100%;border:0;background:none;color:var(--muted);text-align:left;padding:11px 13px;border-radius:10px;cursor:pointer;margin:4px 0}
+  nav button.active,nav button:hover{background:var(--panel2);color:white}
+  .side-card{position:absolute;left:18px;right:18px;bottom:20px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  .green{background:var(--green)}.yellow{background:var(--yellow)}.red{background:var(--red)}.blue{background:var(--blue)}
+  .main{padding:28px 34px 48px;overflow:auto}
+  .topbar{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}
+  .topbar h2{margin:0 0 6px;font-size:29px}.topbar p{margin:0;color:var(--muted)}
+  .pill{padding:10px 13px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .view{display:none}.view.active{display:block}
+  .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+  .card{background:rgba(18,25,54,.9);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.16)}
+  .stat-label{color:var(--muted);font-size:12px}.stat{font-size:30px;font-weight:800;margin-top:8px}.note{font-size:12px;color:var(--muted);margin-top:8px}
+  .grid2{display:grid;grid-template-columns:1.4fr .8fr;gap:18px}.grid-equal{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.section-title h3{margin:0;font-size:17px}
+  .linkbtn{border:0;background:none;color:var(--blue);cursor:pointer;font-weight:700}
+  table{width:100%;border-collapse:collapse}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:10px 8px}
+  td{padding:13px 8px;border-top:1px solid var(--line);font-size:13px}tr.clickable:hover{background:rgba(255,255,255,.025);cursor:pointer}
+  .tag{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;font-size:11px;border:1px solid var(--line);white-space:nowrap}
+  .tag.ok{color:#7fe5b7;background:rgba(83,213,154,.08)}.tag.warn{color:#f6dc8b;background:rgba(244,201,93,.08)}
+  .tag.bad{color:#ff9d9d;background:rgba(255,112,112,.08)}.tag.info{color:#98b9ff;background:rgba(110,168,255,.08)}
+  .activity{display:flex;flex-direction:column;gap:10px}.activity-item{padding:12px;border-radius:12px;background:#101733;border:1px solid var(--line)}
+  .activity-item strong{font-size:13px}.activity-item p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.45}.time{float:right;color:#6d789d;font-size:11px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select{background:#0d142b;border:1px solid var(--line);color:white;border-radius:10px;padding:10px 12px}
+  .toolbar input{min-width:260px;flex:1}.btn{border:1px solid var(--line);background:#111834;color:white;padding:10px 12px;border-radius:10px;cursor:pointer}
+  .btn.primary{background:linear-gradient(135deg,#75a9ff,#4a72ff);border-color:#4a72ff;color:#071020;font-weight:800}
+  .btn.danger{border-color:#7e3b46;color:#ff9aa8;background:#22131a}
+  .mini-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.mini{padding:14px;border-radius:13px;background:#101733;border:1px solid var(--line)}
+  .mini strong{display:block;font-size:20px;margin-top:5px}
+  .timeline{position:relative;margin-top:8px;padding-left:24px}.timeline:before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
+  .tl{position:relative;padding:0 0 18px 10px}.tl:before{content:"";position:absolute;left:-21px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px #121936}
+  .tl.done:before{background:var(--green)}.tl.warn:before{background:var(--yellow)}.tl.bad:before{background:var(--red)}
+  .tl h4{margin:0 0 4px;font-size:13px}.tl p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+  .split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  .field-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.field{padding:12px;border-radius:11px;background:#0e1530;border:1px solid var(--line)}
+  .field span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}.field strong{font-size:13px}
+  .email-card{padding:14px;border:1px solid var(--line);border-radius:12px;background:#0e1530;margin-bottom:10px;cursor:pointer}.email-card:hover{border-color:#3b4f8f}
+  .email-card h4{margin:0 0 5px;font-size:13px}.email-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+  .thread-msg{padding:14px;border:1px solid var(--line);border-radius:12px;background:#0e1530;margin-bottom:10px}
+  .thread-msg .meta{color:var(--muted);font-size:11px;margin-bottom:7px}.thread-msg p{margin:0;font-size:13px;line-height:1.55}
+  .progress{height:8px;background:#0d142b;border:1px solid var(--line);border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,#6ea8ff,#7ee2b5)}
+  .autonomy-row{display:grid;grid-template-columns:180px 1fr auto;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+  .toggle{width:44px;height:24px;background:#27304f;border-radius:999px;position:relative;cursor:pointer}.toggle:after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:white;top:3px;left:3px;transition:.2s}
+  .toggle.on{background:#4f7bff}.toggle.on:after{left:23px}
+  .chat{margin-top:18px;background:linear-gradient(135deg,rgba(76,119,255,.14),rgba(18,25,54,.96));border:1px solid #3853a0;border-radius:16px;padding:18px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.chips button{border:1px solid var(--line);background:#111831;color:#cbd4f7;padding:8px 10px;border-radius:999px;cursor:pointer;font-size:12px}
+  .askrow{display:flex;gap:10px}.askrow input{flex:1;background:#0d142d;border:1px solid var(--line);border-radius:11px;padding:12px;color:white}
+  #response{display:none;margin-top:12px;padding:13px;border-radius:11px;background:#0e1530;border:1px solid var(--line);font-size:13px;line-height:1.55}
+  .chat-history{display:none;max-height:300px;overflow:auto;margin:14px 0 10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(7,12,28,.55)}
+  .chat-msg{margin:8px 0;display:flex;flex-direction:column;gap:4px}.chat-msg.user{align-items:flex-end}.chat-msg.nova{align-items:flex-start}
+  .chat-bubble{max-width:88%;padding:10px 12px;border-radius:12px;background:#172044;border:1px solid var(--line);line-height:1.5}.chat-msg.user .chat-bubble{background:#20366e}
+  .chat-meta{font-size:10px;color:var(--muted)} .chat-open{margin-top:8px;color:var(--blue);cursor:pointer;font-weight:700}
+  .asn-lookup{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.asn-lookup input{flex:1;min-width:260px;background:#0d142b;border:1px solid var(--line);color:white;border-radius:10px;padding:11px 12px}
+  .asn-record{margin-top:14px}.asn-record .record-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+  .invoice-doc{background:#f7f8fb;color:#182033;border-radius:14px;padding:26px;border:1px solid #d9deea}
+  .invoice-doc .inv-head{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #d9deea;padding-bottom:16px;margin-bottom:16px}
+  .invoice-doc .inv-brand{font-size:22px;font-weight:800}.invoice-doc .inv-label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#667085}
+  .invoice-doc .inv-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.invoice-doc .inv-meta div{background:white;border:1px solid #e4e7ec;border-radius:8px;padding:10px}
+  .invoice-doc table{color:#182033}.invoice-doc th{color:#667085;border-bottom-color:#d9deea}.invoice-doc td{border-bottom-color:#e6e9ef}
+  .invoice-total{display:flex;justify-content:flex-end;margin-top:14px;font-size:16px}.invoice-total strong{min-width:150px;text-align:right}
+  .demo-stamp{display:inline-block;border:2px solid #9aa4b2;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:800;letter-spacing:.12em;color:#667085;transform:rotate(-2deg)}
+  .validation-box{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#111936}
+  .validation-line{display:grid;grid-template-columns:1.15fr 1fr 1.6fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
+  .validation-line:last-child{border-bottom:0}.validation-line .badtext{color:#ff8e9b}.validation-line .warntext{color:#ffd280}.validation-line .oktext{color:#73e6ae}
+  .processing-wrap{text-align:center;padding:6px 4px 2px}.processing-timer{font-size:42px;font-weight:800;letter-spacing:.04em;margin:10px 0 18px}
+  .process-steps{text-align:left;max-width:640px;margin:0 auto}.process-step{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .process-step.active{color:#fff}.process-step.done{color:#73e6ae}.process-result{display:none;margin-top:20px;padding:16px;border:1px solid #2f8762;border-radius:12px;background:rgba(38,132,93,.12)}
+
+
+  .banner{padding:14px 16px;border:1px solid #3853a0;background:rgba(67,106,255,.09);border-radius:13px;margin-bottom:16px;color:#dce5ff;font-size:13px}
+  .modal{position:fixed;inset:0;background:rgba(3,6,16,.75);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal-card{width:min(700px,100%);max-height:90vh;overflow:auto;background:#121936;border:1px solid #344274;border-radius:18px;padding:22px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+  .toast{position:fixed;right:22px;bottom:22px;display:none;padding:12px 14px;border-radius:11px;background:#13213a;border:1px solid #3d5a89;color:#eaf0ff;z-index:100;font-size:13px}
+  @media(max-width:1050px){.app{grid-template-columns:1fr}.sidebar{display:none}.summary{grid-template-columns:repeat(2,1fr)}.grid2,.grid-equal,.split{grid-template-columns:1fr}}
+  @media(max-width:650px){.main{padding:20px 14px 40px}.summary,.mini-cards{grid-template-columns:1fr}.field-grid{grid-template-columns:1fr}.topbar{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">N</div><div><h1>NOVA</h1><small>Digital Shipping Agent</small></div></div>
+    <nav>
+      <button class="active" data-view="overview">◫ &nbsp; Overview</button>
+      <button data-view="shipments">▣ &nbsp; Shipments</button>
+      <button data-view="asn">✓ &nbsp; ASN Workspace</button>
+      <button data-view="communications">✉ &nbsp; Communications</button>
+      <button data-view="exceptions">⚠ &nbsp; Exceptions</button>
+      <button data-view="controls">⚙ &nbsp; Rules & Access</button>
+    </nav>
+    <div class="side-card">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:7px">NOVA STATUS</div>
+      <div style="font-size:13px"><span class="dot green"></span>Operational</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Autonomy Level 2 — Assist</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div><h2 id="pageTitle">Good afternoon, Shafiq.</h2><p id="pageSubtitle">Nova is monitoring your active shipment workload.</p></div>
+      <div class="pill">Shipping & Transport &nbsp; • &nbsp; Dubai</div>
+    </div>
+
+    <section class="view active" id="overview">
+      <div class="summary">
+        <div class="card"><div class="stat-label">Active Shipments</div><div class="stat" id="activeStat">0</div><div class="note">Current Nova workload</div></div>
+        <div class="card"><div class="stat-label">Running Normally</div><div class="stat" id="normalStat">0</div><div class="note"><span class="dot green"></span>No action required</div></div>
+        <div class="card"><div class="stat-label">Nova Handling</div><div class="stat" id="handlingStat">0</div><div class="note"><span class="dot yellow"></span>Validation / follow-ups</div></div>
+        <div class="card"><div class="stat-label">Needs Attention</div><div class="stat" id="attentionStat">0</div><div class="note"><span class="dot red"></span>Human review required</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="section-title"><h3>Current Shipment Queue</h3><button class="linkbtn" onclick="showView('shipments')">View all</button></div>
+          <table><thead><tr><th>Shipment</th><th>Brand</th><th>Status</th><th>Issue</th><th></th></tr></thead><tbody id="overviewAttention"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>Nova Activity</h3><button class="linkbtn" onclick="showToast('Live activity log opened in demo mode')">Live log</button></div>
+          <div class="activity">
+            <div class="activity-item"><strong>✓ ASN 48291 confirmed</strong><span class="time">11:06</span><p>SHP-29271 passed validation and moved to Completed.</p></div>
+            <div class="activity-item"><strong>⚠ BU follow-up due</strong><span class="time">08:45</span><p>SHP-29342 is still waiting for the required PO correction.</p></div>
+            <div class="activity-item"><strong>⚠ Exception escalated</strong><span class="time">13:22</span><p>PO field marked TBC for 2 items in SHP-29481.</p></div>
+            <div class="activity-item"><strong>✓ Shipment validated</strong><span class="time">14:35</span><p>SHP-29298 is ready for ASN generation and confirmation.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat">
+        <h3 style="margin:0">Ask Nova</h3>
+        <p style="color:var(--muted);font-size:13px;margin:6px 0 0">Ask about shipment status, ASNs, POs, Business Unit follow-ups or exceptions.</p>
+        <div class="chips">
+          <button onclick="ask('Which shipments need attention?')">Needs attention</button>
+          <button onclick="ask('What is the next step with shipment SHP-29387?')">Next step: SHP-29387</button>
+          <button onclick="ask('Which shipments are ready for ASN?')">Ready for ASN</button>
+          <button onclick="ask('How many ASNs were confirmed?')">Confirmed ASNs</button>
+        </div>
+        <div id="chatHistory" class="chat-history"></div>
+        <div class="askrow"><input id="query" placeholder="Try: What's the next step with SHP-29387?"><button class="btn primary" onclick="ask()">Ask</button></div>
+        <div id="response"></div>
+      </div>
+    </section>
+
+    <section class="view" id="shipments">
+      <div class="toolbar">
+        <input id="shipmentSearch" placeholder="Search shipment, brand, PO or ASN" oninput="renderShipments()">
+        <select id="brandFilter" onchange="renderShipments()"><option value="">All brands</option></select>
+        <select id="statusFilter" onchange="renderShipments()"><option value="">All statuses</option><option>Running normally</option><option>Nova handling</option><option>Needs attention</option></select>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <div class="section-title"><h3>Active Shipments</h3><button class="btn" onclick="showToast('Shipment list exported — demo')">Export</button></div>
+        <table><thead><tr><th>Shipment</th><th>Brand</th><th>POs</th><th>ASN</th><th>Stage</th><th>Owner</th><th>Last movement</th></tr></thead><tbody id="shipmentsTable"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="section-title"><h3>ASN Confirmed — Completed</h3><span class="tag ok" id="confirmedCount">0 completed</span></div>
+        <table><thead><tr><th>Shipment</th><th>Brand</th><th>POs</th><th>ASN</th><th>Confirmed</th><th>Confirmed by</th></tr></thead><tbody id="confirmedTable"></tbody></table>
+      </div>
+    </section>
+
+    <section class="view" id="asn">
+      <div class="mini-cards">
+        <div class="mini"><span class="stat-label">Ready to Process</span><strong id="readyCount">0</strong></div>
+        <div class="mini"><span class="stat-label">Confirmed ASNs</span><strong id="asnConfirmedCount">0</strong></div>
+        <div class="mini"><span class="stat-label">Blocked / Review</span><strong id="asnBlockedCount">0</strong></div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="section-title"><h3>ASN Lookup & Preparation</h3><span class="tag info">Invoice-backed demo</span></div>
+        <p class="note">Enter a confirmed ASN number to retrieve its shipment lines, or enter a Shipment ID to review the invoice data Nova will use before ASN generation.</p>
+        <div class="asn-lookup">
+          <input id="asnLookupInput" placeholder="Enter ASN (e.g. 48291) or Shipment ID (e.g. SHP-29298)" onkeydown="if(event.key==='Enter')lookupASNRecord()">
+          <button class="btn primary" onclick="lookupASNRecord()">Search</button>
+        </div>
+        <div id="asnLookupResult" class="asn-record">
+          <div class="note" style="padding:10px 0">Search for an ASN or shipment to display item, quantity, price and invoice information.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>ASN Processing Queue</h3><button class="btn primary" onclick="processReady()">Process ready ASNs</button></div>
+        <table><thead><tr><th>ASN</th><th>Shipment</th><th>Invoice</th><th>Brand</th><th>Validation</th><th>Issue</th><th>Action</th></tr></thead><tbody id="asnTable"></tbody></table>
+      </div>
+    </section>
+
+    <section class="view" id="communications">
+      <div class="grid-equal">
+        <div class="card">
+          <div class="section-title"><h3>Email Threads</h3><span class="tag info">Today: 12</span></div>
+          <div id="emailList"></div>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>Communication Rules</h3><button class="linkbtn" onclick="showView('controls')">Manage</button></div>
+          <div class="activity">
+            <div class="activity-item"><strong>BU PO request</strong><p>Prepare a Reply All when PO data is blank, invalid or TBC. Human approval required.</p></div>
+            <div class="activity-item"><strong>Quantity mismatch</strong><p>Stop ASN processing and prepare a Reply All for review when shipment and PO quantities do not match.</p></div>
+            <div class="activity-item"><strong>BU follow-up</strong><p>Keep the request in the existing thread and prepare a follow-up when the required correction is still pending.</p></div>
+            <div class="activity-item"><strong>Completion rule</strong><p>Once the ASN is confirmed, mark the shipment completed and remove it from Nova's active queue.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="exceptions">
+      <div class="banner">Nova stops when a shipment leaves the standard workflow. Every exception below opens into the correct shipment record.</div>
+      <div class="card">
+        <table><thead><tr><th>Priority</th><th>Shipment</th><th>Brand</th><th>Exception</th><th>Nova recommendation</th><th></th></tr></thead><tbody id="exceptionsTable"></tbody></table>
+      </div>
+    </section>
+
+    <section class="view" id="controls">
+      <div class="card" style="margin-bottom:18px">
+        <div class="section-title"><h3>Nova Autonomy</h3><span class="tag info">Level 2 — Assist</span></div>
+        <p style="color:var(--muted);font-size:13px">Toggle permissions to demonstrate different operating modes.</p>
+        <div class="autonomy-row"><div><b>Monitor shipments</b></div><div class="note">Track report changes, deadlines and shipment state.</div><div class="toggle on" onclick="toggleControl(this,'Shipment monitoring')"></div></div>
+        <div class="autonomy-row"><div><b>Validate ASN data</b></div><div class="note">Check PO, quantities, barcodes and required fields.</div><div class="toggle on" onclick="toggleControl(this,'ASN validation')"></div></div>
+        <div class="autonomy-row"><div><b>Process clean ASNs</b></div><div class="note">Confirm ASNs that pass all configured rules.</div><div class="toggle" onclick="toggleControl(this,'Automatic ASN processing')"></div></div>
+        <div class="autonomy-row"><div><b>Send routine operational emails</b></div><div class="note">Send approved pre-confirmation operational communication within existing threads.</div><div class="toggle on" onclick="toggleControl(this,'Routine email automation')"></div></div>
+        <div class="autonomy-row"><div><b>Send BU exception emails</b></div><div class="note">Currently requires human approval before sending.</div><div class="toggle" onclick="toggleControl(this,'BU exception email automation')"></div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="section-title"><h3>Email Demo Configuration</h3><span class="tag info">Prototype</span></div>
+        <p style="color:var(--muted);font-size:13px">The recipient can be changed without modifying Nova's workflow.</p>
+        <div class="field-grid">
+          <div class="field"><span>Demo recipient</span><strong id="demoRecipientLabel">shafiq.nabeel@yahoo.com</strong></div>
+          <div class="field"><span>Sender connection</span><strong id="senderStatus">Cloud email service</strong></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <input id="demoRecipientInput" value="shafiq.nabeel@yahoo.com"
+            style="flex:1;min-width:280px;background:#0d142b;border:1px solid var(--line);color:white;border-radius:10px;padding:10px 12px">
+          <button class="btn" onclick="saveDemoRecipient()">Save recipient</button>
+        </div>
+        <div class="note"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Audit & Accountability</h3><button class="btn" onclick="showToast('Audit log download prepared — demo')">Download log</button></div>
+        <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Reason / Rule</th></tr></thead>
+          <tbody>
+            <tr><td>14:03</td><td>Nova</td><td>ASN confirmed</td><td>All validation passed — ASN-COMPLETE-01</td></tr>
+            <tr><td>13:24</td><td>Nova</td><td>BU reply drafted</td><td>Invalid/TBC PO detected — approval required</td></tr>
+            <tr><td>13:22</td><td>Nova</td><td>ASN workflow stopped</td><td>Missing valid PO — ASN-BLOCK-03</td></tr>
+            <tr><td>10:03</td><td>Nova</td><td>Human review requested</td><td>Quantity mismatch — ASN-BLOCK-05</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="view" id="shipmentDetail">
+      <button class="btn" onclick="showView('shipments')" style="margin-bottom:14px">← Back to Shipments</button>
+      <div class="banner" id="detailBanner"></div>
+      <div class="split">
+        <div class="card">
+          <div class="section-title"><h3 id="detailTitle"></h3><span id="detailStatus" class="tag info"></span></div>
+          <div class="field-grid" id="detailFields"></div>
+          <div style="margin-top:16px">
+            <div class="section-title"><h3>Shipment Progress</h3><span class="note" id="progressText"></span></div>
+            <div class="progress"><span id="progressBar"></span></div>
+          </div>
+          <div style="margin-top:18px">
+            <h3 style="font-size:15px;margin-bottom:10px">Nova Recommendation</h3>
+            <div class="field"><span>Recommended action</span><strong id="detailRecommendation"></strong></div>
+            <div style="display:flex;gap:10px;margin-top:12px" id="detailActions"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>Shipment Timeline</h3><button class="linkbtn" onclick="showToast('Full audit opened — demo')">Full audit</button></div>
+          <div class="timeline" id="detailTimeline"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="threadDetail">
+      <button class="btn" onclick="showView('communications')" style="margin-bottom:14px">← Back to Communications</button>
+      <div class="split">
+        <div class="card">
+          <div class="section-title"><h3 id="threadTitle"></h3><span class="tag info">Existing thread</span></div>
+          <div id="threadMessages"></div>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>Nova Action</h3><span id="threadState" class="tag warn">Draft required</span></div>
+          <div class="field"><span>Reply mode</span><strong>Reply All</strong></div>
+          <div class="field" style="margin-top:10px"><span>Recipients</span><strong id="threadRecipients"></strong></div>
+          <div class="field" style="margin-top:10px"><span>Nova recommendation</span><strong id="threadRecommendation"></strong></div>
+          <button class="btn primary" style="margin-top:12px" onclick="openEmailModal(currentThreadShipment)">Prepare Reply All</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="emailModal">
+  <div class="modal-card">
+    <h3 style="margin-top:0">Nova Draft — Reply All</h3>
+    <div class="field" style="margin-bottom:10px"><span>Existing Thread</span><strong id="modalThread"></strong></div>
+    <div class="field" style="margin-bottom:10px"><span>Operational recipients shown in Nova</span><strong id="modalRecipients"></strong></div>
+    <div class="field" style="margin-bottom:10px"><span>Prototype delivery recipient</span><strong id="modalDeliveryRecipient">shafiq.nabeel@yahoo.com</strong></div>
+    <div class="field" style="margin-bottom:10px"><span>Subject</span><strong id="modalSubject"></strong><input id="modalSubjectEdit" style="display:none;width:100%;margin-top:8px;background:#0d142b;border:1px solid var(--line);color:white;border-radius:10px;padding:10px 12px"></div>
+    <div class="field">
+      <span>Email draft</span>
+      <div id="modalBody" style="font-size:13px;line-height:1.65;color:#e5e9ff"></div>
+      <textarea id="modalBodyEdit" style="display:none;width:100%;min-height:210px;margin-top:8px;background:#0d142b;border:1px solid var(--line);color:white;border-radius:10px;padding:12px;line-height:1.55;resize:vertical"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="editDraftBtn" onclick="editDraft()">Edit</button>
+      <button class="btn" id="saveDraftBtn" style="display:none" onclick="saveDraft()">Save Changes</button>
+      <button class="btn primary" onclick="sendDraft()">Approve & Send</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal" id="asnProcessModal">
+  <div class="modal-card" style="max-width:760px">
+    <div class="section-title"><h3 id="processTitle">NOVA ASN Processing</h3><button class="btn" id="processCloseBtn" onclick="closeASNProcess()">Close</button></div>
+    <div class="processing-wrap">
+      <div class="note">LIVE DEMO PROCESSING</div>
+      <div class="processing-timer" id="processTimer">00:00.0</div>
+      <div class="process-steps" id="processSteps"></div>
+      <div class="process-result" id="processResult"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="invoiceModal">
+  <div class="modal-card" style="max-width:940px">
+    <div class="section-title"><h3>Shipment Invoice</h3><button class="btn" onclick="closeInvoice()">Close</button></div>
+    <div id="invoiceContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const shipments = [
+ {id:"SHP-29481",brand:"Sephora",pos:4,asn:null,confirmed:false,stage:"ASN blocked",statusGroup:"Needs attention",owner:"Nova + Shafiq",last:"42m ago",pieces:"1,284",progress:45,issue:"2 SKU lines do not have valid POs",priority:"High",recommendation:"Reply All to the existing shipment thread and tag the relevant Business Unit contact to request the required POs.",recipients:"Warehouse Team; Logistics Team; [Sephora BU Contact]",poText:"4 total / 2 valid",timeline:[
+  ["done","Shipment detected","Nova identified the shipment in the operational report.","Today, 12:54 PM"],
+  ["done","PO references checked","4 PO references found and item mappings reviewed.","Today, 12:56 PM"],
+  ["warn","Validation warning","2 SKU lines contained PO status “TBC”.","Today, 1:21 PM"],
+  ["bad","ASN workflow stopped","The ASN cannot be generated until the 2 SKU lines have valid POs.","Today, 1:22 PM"],
+  ["","BU reply prepared","Reply All draft is waiting for human approval.","Today, 1:24 PM"]
+ ]},
+ {id:"SHP-29387",brand:"Dior",pos:5,asn:null,confirmed:false,stage:"Quantity mismatch",statusGroup:"Needs attention",owner:"Shafiq",last:"3h ago",pieces:"980",progress:42,issue:"Shipment quantity exceeds PO quantity by 20 pieces",priority:"High",recommendation:"Verify the quantity discrepancy before an ASN can be generated. Reply to the existing thread and tag the relevant Dior Business Unit contact if correction is required.",recipients:"Warehouse Team; Logistics Team; [Dior BU Contact]",poText:"5 total / 5 valid",timeline:[
+  ["done","Shipment detected","Shipment loaded into Nova.","Today, 9:52 AM"],
+  ["done","PO validation completed","All 5 POs were found and matched.","Today, 9:56 AM"],
+  ["bad","Quantity mismatch found","Shipment quantity is 20 pieces higher than the PO quantity.","Today, 10:02 AM"],
+  ["","Human review requested","Nova stopped ASN generation and assigned the exception.","Today, 10:03 AM"]
+ ]},
+ {id:"SHP-29342",brand:"Lacoste",pos:3,asn:null,confirmed:false,stage:"Awaiting BU",statusGroup:"Nova handling",owner:"Nova",last:"31h ago",pieces:"742",progress:38,issue:"Business Unit reply pending for more than 24 hours",priority:"Medium",recommendation:"Reply to the existing thread with a follow-up and tag the Lacoste BU contact if the recipient is not already included.",recipients:"Warehouse Team; Logistics Team; [Lacoste BU Contact]",poText:"3 total / 2 valid",timeline:[
+  ["done","PO issue detected","One required PO was missing from the shipment data.","05 Sep 2026, 8:37 AM"],
+  ["done","BU reply sent","Nova prepared and sent the approved Reply All message.","05 Sep 2026, 8:44 AM"],
+  ["warn","Reply overdue","No BU response after 24 hours.","Today, 8:44 AM"],
+  ["","Follow-up due","Nova recommends following up within the existing thread.","Today, 8:45 AM"]
+ ]},
+ {id:"SHP-29298",brand:"L'Occitane",pos:6,asn:null,confirmed:false,stage:"Ready for ASN",statusGroup:"Running normally",owner:"Nova",last:"18m ago",pieces:"1,105",progress:72,issue:"No exception",priority:"Low",recommendation:"All required data is valid. Nova can generate and confirm the ASN, then mark the shipment completed.",recipients:"Warehouse Team; Logistics Team",poText:"6 total / 6 valid",timeline:[
+  ["done","Shipment detected","Shipment entered the operational report.","Today, 2:31 PM"],
+  ["done","PO validation passed","All POs, items and quantities matched.","Today, 2:34 PM"],
+  ["","Ready for ASN","All prerequisites have passed. ASN has not yet been generated.","Today, 2:35 PM"]
+ ]},
+ {id:"SHP-29504",brand:"Dyson",pos:2,asn:null,confirmed:false,stage:"Validating",statusGroup:"Running normally",owner:"Nova",last:"8m ago",pieces:"620",progress:54,issue:"No exception",priority:"Low",recommendation:"Nova is validating the shipment data. No human action is required.",recipients:"Warehouse Team; Logistics Team",poText:"2 total / 2 valid",timeline:[
+  ["done","Shipment detected","Nova identified the shipment in the operational report.","Today, 2:41 PM"],
+  ["","Validation in progress","POs, item mappings and quantities are being checked.","Today, 2:43 PM"]
+ ]},
+ {id:"SHP-29522",brand:"Dior",pos:4,asn:null,confirmed:false,stage:"Ready for ASN",statusGroup:"Running normally",owner:"Nova",last:"12m ago",pieces:"856",progress:78,issue:"No exception",priority:"Low",recommendation:"All required shipment data is valid. Nova can proceed with ASN generation and confirmation.",recipients:"Warehouse Team; Logistics Team",poText:"4 total / 4 valid",timeline:[
+  ["done","Shipment detected","Shipment entered the operational report.","Today, 2:48 PM"],
+  ["done","PO validation passed","All POs, item mappings and quantities matched.","Today, 2:51 PM"],
+  ["","Ready for ASN","All prerequisites have passed. ASN has not yet been generated.","Today, 2:53 PM"]
+ ]},
+ {id:"SHP-29518",brand:"Sephora",pos:7,asn:null,confirmed:false,stage:"Validating",statusGroup:"Nova handling",owner:"Nova",last:"16m ago",pieces:"1,430",progress:58,issue:"Validation in progress",priority:"Low",recommendation:"Nova is validating PO and item mappings. No human action is required yet.",recipients:"Warehouse Team; Logistics Team",poText:"7 total / validating",timeline:[
+  ["done","Shipment detected","Nova identified the shipment in the operational report.","Today, 2:39 PM"],
+  ["","Validation in progress","POs, item mappings and quantities are being checked.","Today, 2:41 PM"]
+ ]},
+ {id:"SHP-29511",brand:"Lacoste",pos:5,asn:null,confirmed:false,stage:"PO review",statusGroup:"Nova handling",owner:"Nova",last:"24m ago",pieces:"965",progress:49,issue:"1 PO requires validation",priority:"Medium",recommendation:"Nova is checking the PO reference before deciding whether escalation is required.",recipients:"Warehouse Team; Logistics Team; [Lacoste BU Contact]",poText:"5 total / 4 validated",timeline:[
+  ["done","Shipment detected","Shipment loaded into Nova.","Today, 2:24 PM"],
+  ["warn","PO review in progress","One PO reference requires additional validation.","Today, 2:28 PM"]
+ ]},
+ {id:"SHP-29496",brand:"Guess",pos:2,asn:null,confirmed:false,stage:"Ready for ASN",statusGroup:"Running normally",owner:"Nova",last:"27m ago",pieces:"515",progress:75,issue:"No exception",priority:"Low",recommendation:"Shipment data is complete and ready for ASN generation and confirmation.",recipients:"Warehouse Team; Logistics Team",poText:"2 total / 2 valid",timeline:[
+  ["done","Shipment detected","Shipment entered Nova's active workload.","Today, 2:17 PM"],
+  ["done","Validation passed","All required data passed validation.","Today, 2:21 PM"],
+  ["","Ready for ASN","ASN has not yet been generated.","Today, 2:22 PM"]
+ ]},
+ {id:"SHP-29472",brand:"L'Occitane",pos:3,asn:null,confirmed:false,stage:"Barcode review",statusGroup:"Needs attention",owner:"Shafiq",last:"1h ago",pieces:"688",progress:41,issue:"1 barcode not found against the PO",priority:"High",recommendation:"Review the unmatched barcode and reply to the existing thread with the relevant Business Unit contact if correction is required.",recipients:"Warehouse Team; Logistics Team; [L'Occitane BU Contact]",poText:"3 total / 3 valid",timeline:[
+  ["done","Shipment detected","Shipment entered Nova's active workload.","Today, 1:36 PM"],
+  ["done","PO validation completed","All required POs were found.","Today, 1:40 PM"],
+  ["bad","Barcode mismatch found","One shipment barcode could not be matched against the PO.","Today, 1:44 PM"],
+  ["","Human review requested","Nova stopped ASN generation pending review.","Today, 1:45 PM"]
+ ]},
+ {id:"SHP-29271",brand:"Guess",pos:1,asn:"48291",confirmed:true,confirmedAt:"Today, 11:06 AM",confirmedBy:"Nova",stage:"ASN Confirmed — Completed",statusGroup:"Completed",owner:"Nova",last:"Today, 11:06 AM",pieces:"410",progress:100,issue:"No exception",priority:"Low",recommendation:"Completed. No further action is required from Shipping & Transport.",recipients:"Warehouse Team; Logistics Team",poText:"1 total / 1 valid",timeline:[
+  ["done","Shipment detected","Shipment entered Nova's active workload.","Today, 10:52 AM"],
+  ["done","Validation passed","All required POs, items and quantities matched.","Today, 11:01 AM"],
+  ["done","ASN generated","ASN 48291 was generated after validation passed.","Today, 11:04 AM"],
+  ["done","ASN confirmed","ASN 48291 confirmed successfully. Shipment marked completed.","Today, 11:06 AM"]
+ ]},
+ {id:"SHP-29188",brand:"Sephora",pos:3,asn:"48244",confirmed:true,confirmedAt:"05 Sep 2026, 4:18 PM",confirmedBy:"Shafiq",stage:"ASN Confirmed — Completed",statusGroup:"Completed",owner:"Shafiq",last:"05 Sep 2026, 4:18 PM",pieces:"890",progress:100,issue:"No exception",priority:"Low",recommendation:"Completed. No further action is required from Shipping & Transport.",recipients:"Warehouse Team; Logistics Team",poText:"3 total / 3 valid",timeline:[
+  ["done","Shipment detected","Shipment entered Nova's active workload.","05 Sep 2026, 3:47 PM"],
+  ["done","Validation passed","All required shipment data passed validation.","05 Sep 2026, 4:10 PM"],
+  ["done","ASN generated","ASN 48244 was generated.","05 Sep 2026, 4:16 PM"],
+  ["done","ASN confirmed","ASN 48244 confirmed successfully. Shipment marked completed.","05 Sep 2026, 4:18 PM"]
+ ]}
+];
+
+const invoices = [{"shipment":"SHP-29481","invoice":"INV-SEP-260901","date":"06 Sep 2026","currency":"AED","supplier":"Sephora Demo Supplier","items":[{"sku":"SEP-74498","description":"Beauty Set A","qty":104,"price":91.66,"po":"PO-741812","barcode":"4603101560215"},{"sku":"SEP-53839","description":"Skincare Kit","qty":255,"price":114.1,"po":"PO-798289","barcode":"7963908295041"},{"sku":"SEP-20066","description":"Fragrance Unit","qty":157,"price":203.33,"po":"PO-768260","barcode":"7303707409084"},{"sku":"SEP-56594","description":"Cosmetic Pack","qty":133,"price":216.14,"po":"PO-751420","barcode":"3689025547285"}]},{"shipment":"SHP-29387","invoice":"INV-DIO-260902","date":"06 Sep 2026","currency":"AED","supplier":"Dior Demo Supplier","items":[{"sku":"DIO-80615","description":"Fragrance Unit","qty":195,"price":221.51,"po":"PO-743278","barcode":"9980989702883"},{"sku":"DIO-26907","description":"Beauty Case","qty":220,"price":129.34,"po":"PO-784334","barcode":"7312082168563"},{"sku":"DIO-12978","description":"Cosmetic Set","qty":152,"price":161.75,"po":"PO-783665","barcode":"5614437398228"},{"sku":"DIO-22341","description":"Skincare Unit","qty":172,"price":207.63,"po":"PO-778404","barcode":"1807573528899"}]},{"shipment":"SHP-29342","invoice":"INV-LAC-260903","date":"06 Sep 2026","currency":"AED","supplier":"Lacoste Demo Supplier","items":[{"sku":"LAC-87447","description":"Polo Shirt","qty":184,"price":234.79,"po":"PO-767949","barcode":"9798691934753"},{"sku":"LAC-82688","description":"T-Shirt","qty":238,"price":44.53,"po":"PO-765648","barcode":"3698305253216"},{"sku":"LAC-94796","description":"Cap","qty":211,"price":52.31,"po":"PO-745564","barcode":"4531595892846"},{"sku":"LAC-95924","description":"Sweatshirt","qty":185,"price":239.94,"po":"PO-750771","barcode":"6632046610022"}]},{"shipment":"SHP-29298","invoice":"INV-LOC-260904","date":"06 Sep 2026","currency":"AED","supplier":"L'Occitane Demo Supplier","items":[{"sku":"LOC-30468","description":"Hand Cream","qty":221,"price":189.87,"po":"PO-790911","barcode":"6375472005080"},{"sku":"LOC-61755","description":"Body Lotion","qty":240,"price":202.33,"po":"PO-784804","barcode":"9048725103186"},{"sku":"LOC-70942","description":"Shower Gel","qty":89,"price":86.41,"po":"PO-772970","barcode":"1139946048905"}]},{"shipment":"SHP-29504","invoice":"INV-DYS-260905","date":"06 Sep 2026","currency":"AED","supplier":"Dyson Demo Supplier","items":[{"sku":"DYS-28043","description":"Hair Styling Unit","qty":118,"price":211.04,"po":"PO-790139","barcode":"2119849385873"},{"sku":"DYS-24505","description":"Air Treatment Unit","qty":143,"price":128.88,"po":"PO-767767","barcode":"6484009826257"},{"sku":"DYS-29305","description":"Accessory Kit","qty":60,"price":182.29,"po":"PO-784383","barcode":"9276999941400"},{"sku":"DYS-31402","description":"Filter Pack","qty":147,"price":91.91,"po":"PO-760298","barcode":"9467810448275"},{"sku":"DYS-35785","description":"Storage Case","qty":169,"price":76.1,"po":"PO-796100","barcode":"4992717435140"}]},{"shipment":"SHP-29522","invoice":"INV-DIO-260906","date":"06 Sep 2026","currency":"AED","supplier":"Dior Demo Supplier","items":[{"sku":"DIO-87108","description":"Fragrance Unit","qty":237,"price":174.22,"po":"PO-769756","barcode":"4713911914603"},{"sku":"DIO-73831","description":"Beauty Case","qty":226,"price":89.57,"po":"PO-753060","barcode":"6002304700726"},{"sku":"DIO-24507","description":"Cosmetic Set","qty":157,"price":140.37,"po":"PO-751287","barcode":"6805204625797"},{"sku":"DIO-57039","description":"Skincare Unit","qty":231,"price":173.72,"po":"PO-750582","barcode":"9373578609361"}]},{"shipment":"SHP-29518","invoice":"INV-SEP-260907","date":"06 Sep 2026","currency":"AED","supplier":"Sephora Demo Supplier","items":[{"sku":"SEP-83592","description":"Beauty Set A","qty":89,"price":105.35,"po":"PO-756941","barcode":"3081569266732"},{"sku":"SEP-67779","description":"Skincare Kit","qty":219,"price":191.29,"po":"PO-781007","barcode":"6831416362938"},{"sku":"SEP-84515","description":"Fragrance Unit","qty":48,"price":218.31,"po":"PO-743733","barcode":"1243132097311"},{"sku":"SEP-95850","description":"Cosmetic Pack","qty":61,"price":103.62,"po":"PO-778795","barcode":"2946569478644"},{"sku":"SEP-89112","description":"Travel Beauty Set","qty":111,"price":31.06,"po":"PO-771936","barcode":"4858255667056"}]},{"shipment":"SHP-29511","invoice":"INV-LAC-260908","date":"06 Sep 2026","currency":"AED","supplier":"Lacoste Demo Supplier","items":[{"sku":"LAC-64971","description":"Polo Shirt","qty":175,"price":46.12,"po":"PO-799224","barcode":"3586440905190"},{"sku":"LAC-88676","description":"T-Shirt","qty":65,"price":165.1,"po":"PO-767279","barcode":"5497975012620"},{"sku":"LAC-44120","description":"Cap","qty":118,"price":83.9,"po":"PO-780008","barcode":"2415421683075"},{"sku":"LAC-27617","description":"Sweatshirt","qty":238,"price":37.53,"po":"PO-781115","barcode":"4407956926717"},{"sku":"LAC-67881","description":"Accessories Pack","qty":91,"price":44.07,"po":"PO-744095","barcode":"5546822777065"}]},{"shipment":"SHP-29496","invoice":"INV-GUE-260909","date":"06 Sep 2026","currency":"AED","supplier":"Guess Demo Supplier","items":[{"sku":"GUE-24077","description":"Handbag","qty":48,"price":232.04,"po":"PO-757286","barcode":"5378522817715"},{"sku":"GUE-82760","description":"Wallet","qty":95,"price":233.94,"po":"PO-750563","barcode":"3765762557361"},{"sku":"GUE-95611","description":"T-Shirt","qty":207,"price":178.03,"po":"PO-789825","barcode":"1269931456567"},{"sku":"GUE-91081","description":"Accessories Set","qty":49,"price":56.27,"po":"PO-792779","barcode":"2435205229632"},{"sku":"GUE-34352","description":"Footwear Unit","qty":106,"price":37.53,"po":"PO-790029","barcode":"1673978602134"}]},{"shipment":"SHP-29472","invoice":"INV-LOC-260910","date":"06 Sep 2026","currency":"AED","supplier":"L'Occitane Demo Supplier","items":[{"sku":"LOC-39903","description":"Hand Cream","qty":91,"price":141.73,"po":"PO-790497","barcode":"3735564422950"},{"sku":"LOC-55190","description":"Body Lotion","qty":49,"price":139.6,"po":"PO-741184","barcode":"1500279859931"},{"sku":"LOC-18983","description":"Shower Gel","qty":151,"price":162.46,"po":"PO-798873","barcode":"2250600733613"},{"sku":"LOC-57803","description":"Gift Set","qty":115,"price":144.74,"po":"PO-770748","barcode":"4324879254857"}]},{"shipment":"SHP-29271","invoice":"INV-GUE-260911","date":"06 Sep 2026","currency":"AED","supplier":"Guess Demo Supplier","items":[{"sku":"GUE-13078","description":"Handbag","qty":127,"price":215.83,"po":"PO-782291","barcode":"8428248525750"},{"sku":"GUE-35313","description":"Wallet","qty":57,"price":60.71,"po":"PO-784165","barcode":"3734749169797"},{"sku":"GUE-59134","description":"T-Shirt","qty":259,"price":167.58,"po":"PO-740769","barcode":"7998695958164"},{"sku":"GUE-72187","description":"Accessories Set","qty":192,"price":186.65,"po":"PO-764898","barcode":"8537827719704"}]},{"shipment":"SHP-29188","invoice":"INV-SEP-260912","date":"06 Sep 2026","currency":"AED","supplier":"Sephora Demo Supplier","items":[{"sku":"SEP-88869","description":"Beauty Set A","qty":229,"price":169.09,"po":"PO-792292","barcode":"8414656641754"},{"sku":"SEP-72447","description":"Skincare Kit","qty":153,"price":182.66,"po":"PO-777153","barcode":"1166823278663"},{"sku":"SEP-36715","description":"Fragrance Unit","qty":199,"price":36.78,"po":"PO-787146","barcode":"6993281774766"}]}];
+
+
+
+const validationIssues = {
+ "SHP-29481":[
+   {sku:"SEP-74498",barcode:"4603101560215",po:"PO-741812",type:"Item not found in PO",detail:"VPN SEP-74498 / Barcode 4603101560215 is not found against PO-741812."},
+   {sku:"SEP-20066",barcode:"3348901671048",po:"PO-768260",type:"Item not found in PO",detail:"VPN SEP-20066 / Barcode 3348901671048 is not found against PO-768260."}
+ ],
+ "SHP-29387":[
+   {sku:"DIO-80615",barcode:"3348901725567",po:"PO-743278",type:"Quantity mismatch",detail:"VPN DIO-80615 / Barcode 3348901725567 — Invoice QTY 195 vs PO QTY 175, exceeding the PO by 20 pieces."}
+ ],
+ "SHP-29342":[
+   {sku:"LAC-82688",barcode:"3617072751142",po:"PO-765648",type:"PO not reflecting",incident:"INC-00000",detail:"PO-765648 is not reflecting in the system. BU has been added to INC-00000 for visibility while IT investigates."}
+ ],
+ "SHP-29511":[
+   {sku:"LAC-87447",barcode:"3617072819903",po:"PO-767949",type:"PO validation required",detail:"VPN LAC-87447 / Barcode 3617072819903 requires validation against PO-767949 before ASN generation."}
+ ],
+ "SHP-29472":[
+   {sku:"LOC-70942",barcode:"1139946048905",po:"PO-772970",type:"Barcode not found",detail:"VPN LOC-70942 / Barcode 1139946048905 is not found against PO-772970."}
+ ]
+};
+function validationDetails(s){
+ const rows=validationIssues[s.id]||[];
+ if(!rows.length){
+   return `<div class="validation-box"><b>Validation result</b><div class="note" style="margin-top:6px">${s.issue==="No exception"?"No item or PO exceptions detected.":"Validation is still in progress."}</div></div>`;
+ }
+ return `<div class="validation-box"><div style="display:flex;justify-content:space-between;gap:12px"><b>Validation exceptions</b><span class="tag bad">${rows.length} issue${rows.length===1?'':'s'}</span></div>
+   <div class="validation-line" style="color:var(--muted);font-weight:700"><span>Item / SKU</span><span>PO reference</span><span>Finding</span></div>
+   ${rows.map(r=>`<div class="validation-line"><span><b>VPN ${r.sku}</b><br><span class="note">Barcode ${r.barcode||'—'}</span></span><span>${r.po}</span><span><span class="badtext"><b>${r.type}</b></span><br><span class="note">${r.detail}</span></span></div>`).join('')}
+ </div>`;
+}
+
+
+const threads = [
+ {shipment:"SHP-29481",title:"Sephora — SHP-29481 / ASN",summary:"PO issue — Reply All draft waiting for approval",state:"Draft required",messages:[
+   ["Warehouse Team","shipment@warehouse.example","Please proceed with the ASN once the shipment data is ready.","Today, 12:48 PM"],
+   ["Logistics Team","logistics@example","Noted, we are reviewing the PO allocation and ASN details.","Today, 12:51 PM"]
+ ]},
+ {shipment:"SHP-29387",title:"Dior — SHP-29387 / ASN",summary:"Quantity mismatch — BU review required",state:"Draft required",messages:[
+   ["Warehouse Team","shipment@warehouse.example","Please confirm the shipment once ready.","Today, 9:47 AM"],
+   ["Logistics Team","logistics@example","We are reviewing a quantity discrepancy before ASN generation.","Today, 9:59 AM"]
+ ]},
+ {shipment:"SHP-29342",title:"Lacoste — SHP-29342 / ASN",summary:"BU response overdue",state:"Follow-up due",messages:[
+   ["Logistics Team","logistics@example","Kindly provide the required PO so we can proceed with the ASN.","05 Sep 2026, 8:44 AM"],
+   ["Nova","nova@example","No response has been received yet. Follow-up is due.","Today, 8:45 AM"]
+ ]}
+];
+
+let currentShipment = null;
+let currentThreadShipment = null;
+let demoRecipient = localStorage.getItem("novaDemoRecipient") || "shafiq.nabeel@yahoo.com";
+
+const titles={
+  overview:["Good afternoon, Shafiq.","Nova is monitoring your active shipment workload."],
+  shipments:["Shipments","A live operational view of every active shipment."],
+  asn:["ASN Workspace","Review invoice data, prepare clean shipments and retrieve confirmed ASN records."],
+  communications:["Communications","Operational email threads, follow-ups and Nova replies."],
+  exceptions:["Exceptions","Only the shipments that require human judgement."],
+  controls:["Rules & Access","Define Nova's permissions, automation boundaries and accountability."],
+  shipmentDetail:["Shipment Detail","A complete operational history for one shipment."],
+  threadDetail:["Email Thread","Nova works from the existing conversation and uses Reply All."]
+};
+
+function tagFor(s){
+ const c=s.statusGroup==="Running normally"?"ok":s.statusGroup==="Nova handling"?"warn":"bad";
+ return `<span class="tag ${c}">${s.stage}</span>`;
+}
+function showView(id){
+ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ document.getElementById('pageTitle').textContent=titles[id][0];
+ document.getElementById('pageSubtitle').textContent=titles[id][1];
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+
+function renderOverview(){
+ const active=shipments.filter(s=>!s.confirmed);
+ document.getElementById('activeStat').textContent=active.length;
+ document.getElementById('normalStat').textContent=active.filter(s=>s.statusGroup==="Running normally").length;
+ document.getElementById('handlingStat').textContent=active.filter(s=>s.statusGroup==="Nova handling").length;
+ document.getElementById('attentionStat').textContent=active.filter(s=>s.statusGroup==="Needs attention").length;
+ const rank={"Needs attention":0,"Nova handling":1,"Running normally":2};
+ const list=shipments.filter(s=>!s.confirmed).sort((a,b)=>(rank[a.statusGroup]??9)-(rank[b.statusGroup]??9)).slice(0,8);
+ document.getElementById('overviewAttention').innerHTML=list.map(s=>`
+ <tr class="clickable" onclick="openShipment('${s.id}')">
+  <td><b>${s.id}</b></td><td>${s.brand}</td><td>${tagFor(s)}</td><td>${s.issue}</td><td style="color:var(--blue)">Open</td>
+ </tr>`).join('');
+}
+
+function renderBrandFilter(){
+ const brands=[...new Set(shipments.map(s=>s.brand))];
+ document.getElementById('brandFilter').innerHTML='<option value="">All brands</option>'+brands.map(b=>`<option>${b}</option>`).join('');
+}
+
+function renderShipments(){
+ const q=(document.getElementById('shipmentSearch')?.value||'').toLowerCase();
+ const brand=document.getElementById('brandFilter')?.value||'';
+ const status=document.getElementById('statusFilter')?.value||'';
+ const active=shipments.filter(s=>!s.confirmed).filter(s=>
+   (!q || [s.id,s.brand,s.asn||'ASN',s.stage,s.issue].join(' ').toLowerCase().includes(q)) &&
+   (!brand || s.brand===brand) &&
+   (!status || s.statusGroup===status)
+ );
+ const completed=shipments.filter(s=>s.confirmed).filter(s=>
+   (!q || [s.id,s.brand,s.asn,s.stage].join(' ').toLowerCase().includes(q)) &&
+   (!brand || s.brand===brand)
+ );
+ document.getElementById('shipmentsTable').innerHTML=active.map(s=>`
+ <tr class="clickable" onclick="openShipment('${s.id}')">
+  <td><b>${s.id}</b></td><td>${s.brand}</td><td>${s.pos}</td><td>${s.asn||'—'}</td><td>${tagFor(s)}</td><td>${s.owner}</td><td>${s.last}</td>
+ </tr>`).join('') || '<tr><td colspan="7" class="note">No active shipments match this filter.</td></tr>';
+ document.getElementById('confirmedTable').innerHTML=completed.map(s=>`
+ <tr class="clickable" onclick="openShipment('${s.id}')">
+  <td><b>${s.id}</b></td><td>${s.brand}</td><td>${s.pos}</td><td><b>${s.asn}</b></td><td>${s.confirmedAt}</td><td>${s.confirmedBy}</td>
+ </tr>`).join('') || '<tr><td colspan="6" class="note">No completed shipments match this filter.</td></tr>';
+ document.getElementById('confirmedCount').textContent=`${shipments.filter(s=>s.confirmed).length} completed`;
+}
+
+function renderExceptions(){
+ const rows=shipments.filter(s=>s.statusGroup==="Needs attention" || s.id==="SHP-29342");
+ document.getElementById('exceptionsTable').innerHTML=rows.map(s=>`
+ <tr class="clickable" onclick="openShipment('${s.id}')">
+  <td><span class="tag ${s.priority==='High'?'bad':'warn'}">${s.priority}</span></td>
+  <td><b>${s.id}</b></td><td>${s.brand}</td><td>${s.issue}</td><td>${s.recommendation}</td><td style="color:var(--blue)">Review</td>
+ </tr>`).join('');
+}
+
+function renderASN(){
+ const active=shipments.filter(s=>!s.confirmed);
+ document.getElementById('asnTable').innerHTML=active.map(s=>{
+  const inv=invoices.find(i=>i.shipment===s.id);
+  let validation,action;
+  if(s.stage==="Ready for ASN"){validation='<span class="tag ok">Passed</span>';action=`<button class="linkbtn" onclick="event.stopPropagation();showASNPrep('${s.id}')">Review data</button> <button class="linkbtn" onclick="event.stopPropagation();simulateASN('${s.id}')">Generate & Confirm</button>`;}
+  else if(s.statusGroup==="Needs attention"){validation='<span class="tag bad">Blocked</span>';action=`<button class="linkbtn" onclick="event.stopPropagation();showASNPrep('${s.id}')">Review data</button>`;}
+  else{validation='<span class="tag warn">In progress</span>';action=`<button class="linkbtn" onclick="event.stopPropagation();showASNPrep('${s.id}')">Review data</button>`;}
+  return `<tr class="clickable" onclick="showASNPrep('${s.id}')"><td><b>${s.asn||'—'}</b></td><td>${s.id}</td><td>${inv?inv.invoice:'—'}</td><td>${s.brand}</td><td>${validation}</td><td>${s.issue}</td><td>${action}</td></tr>`;
+ }).join('');
+ document.getElementById('readyCount').textContent=active.filter(s=>s.stage==="Ready for ASN").length;
+ document.getElementById('asnConfirmedCount').textContent=shipments.filter(s=>s.confirmed).length;
+ document.getElementById('asnBlockedCount').textContent=active.filter(s=>s.statusGroup==="Needs attention" || s.statusGroup==="Nova handling").length;
+}
+
+function money(n){return Number(n).toLocaleString('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function invoiceTotal(inv){return inv.items.reduce((sum,it)=>sum+(it.qty*it.price),0);}
+function itemTable(inv){
+ return `<table><thead><tr><th>Item / SKU</th><th>Description</th><th>QTY</th><th>Unit Price</th><th>Line Total</th></tr></thead><tbody>`+
+ inv.items.map(it=>`<tr><td><b>${it.sku}</b><div class="note">${it.barcode}</div></td><td>${it.description}</td><td>${it.qty}</td><td>AED ${money(it.price)}</td><td>AED ${money(it.qty*it.price)}</td></tr>`).join('')+
+ `</tbody></table>`;
+}
+function renderASNRecord(s){
+ const inv=invoices.find(i=>i.shipment===s.id);
+ if(!inv)return `<div class="note">No invoice data found for ${s.id}.</div>`;
+ const status=s.confirmed?`<span class="tag ok">ASN ${s.asn} Confirmed</span>`:s.stage==="Ready for ASN"?'<span class="tag ok">Validated — Ready for ASN</span>':'<span class="tag warn">Pre-ASN Review</span>';
+ const action=(!s.confirmed && s.stage==="Ready for ASN")
+   ? `<button class="btn primary" onclick="simulateASN('${s.id}');showASNPrep('${s.id}')">Generate & Confirm ASN</button>`
+   : '';
+ return `<div class="card" style="background:#0d142b">
+   <div class="record-head"><div><div class="note">${s.brand}</div><h3 style="margin:3px 0">${s.id}</h3>${status}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="openInvoice('${s.id}')">View Invoice</button>${action}</div></div>
+   <div class="field-grid" style="margin-bottom:14px">
+    <div class="field"><span>ASN</span><strong>${s.asn||'Not generated yet'}</strong></div>
+    <div class="field"><span>Invoice No.</span><strong>${inv.invoice}</strong></div>
+    <div class="field"><span>Invoice Date</span><strong>${inv.date}</strong></div>
+    <div class="field"><span>Currency</span><strong>${inv.currency}</strong></div>
+    <div class="field"><span>Invoice Value</span><strong>AED ${money(invoiceTotal(inv))}</strong></div>
+    <div class="field"><span>Validation</span><strong>${s.issue==="No exception"?"Passed":s.issue}</strong></div>
+   </div>
+   ${validationDetails(s)}
+   <div class="section-title" style="margin-top:16px"><h3>Invoice lines used for ASN</h3><span class="note">${inv.invoice}</span></div>
+   ${itemTable(inv)}
+ </div>`;
+}
+function lookupASNRecord(){
+ const val=(document.getElementById('asnLookupInput').value||'').trim().toUpperCase();
+ if(!val){showToast('Enter an ASN number or Shipment ID');return;}
+ const s=val.startsWith('SHP-') ? shipments.find(x=>x.id===val) : shipments.find(x=>String(x.asn||'')===val);
+ document.getElementById('asnLookupResult').innerHTML=s?renderASNRecord(s):`<div class="banner">No shipment or confirmed ASN matching <b>${val}</b> was found in the demo dataset.</div>`;
+}
+function showASNPrep(shipmentId){
+ const s=shipments.find(x=>x.id===shipmentId); if(!s)return;
+ showView('asn');
+ document.getElementById('asnLookupInput').value=s.asn||s.id;
+ document.getElementById('asnLookupResult').innerHTML=renderASNRecord(s);
+}
+function openInvoice(shipmentId){
+ const s=shipments.find(x=>x.id===shipmentId);
+ const inv=invoices.find(i=>i.shipment===shipmentId);
+ if(!s||!inv)return;
+ document.getElementById('invoiceContent').innerHTML=`
+ <div class="invoice-doc">
+  <div class="inv-head">
+   <div><div class="inv-label">Supplier invoice</div><div class="inv-brand">${inv.supplier}</div><div style="margin-top:9px"><span class="demo-stamp">SIMULATED — DEMO DATA</span></div></div>
+   <div style="text-align:right"><div class="inv-label">Invoice Number</div><div style="font-size:20px;font-weight:800">${inv.invoice}</div><div style="margin-top:6px">${inv.date}</div></div>
+  </div>
+  <div class="inv-meta" style="grid-template-columns:repeat(2,1fr)">
+   <div><div class="inv-label">Shipment Reference</div><b>${s.id}</b></div>
+   <div><div class="inv-label">Brand</div><b>${s.brand}</b></div>
+  </div>
+  ${itemTable(inv)}
+  <div class="invoice-total">Invoice Total&nbsp;&nbsp;<strong>AED ${money(invoiceTotal(inv))}</strong></div>
+ </div>`;
+ document.getElementById('invoiceModal').style.display='flex';
+}
+function closeInvoice(){document.getElementById('invoiceModal').style.display='none';}
+
+function buildOperationalEmailBody(shipmentId){
+ const s=shipments.find(x=>x.id===shipmentId);
+ const rows=validationIssues[shipmentId]||[];
+ if(!s)return 'Hi Team,<br><br>Please review the below shipment issue.<br><br>Thank you.';
+
+ const poNotReflecting=rows.filter(r=>r.type==="PO not reflecting");
+ if(poNotReflecting.length){
+   const lines=poNotReflecting.map(r=>`• <b>${r.po}</b> — not reflecting in the system. You have been added to <b>${r.incident||'INC-00000'}</b> for visibility.`).join('<br>');
+   return `Hi Team,<br><br>Please note the below PO is not reflecting in the system:<br><br>${lines}<br><br>Thank you.`;
+ }
+
+ const qtyMismatch=rows.filter(r=>r.type==="Quantity mismatch");
+ if(qtyMismatch.length){
+   const lines=qtyMismatch.map(r=>`• <b>${r.po}</b> — VPN <b>${r.sku}</b> / Barcode <b>${r.barcode}</b>: ${r.detail.replace(/^VPN .*? — /,'')}`).join('<br>');
+   return `Hi Team,<br><br>Please note the below quantity mismatch:<br><br>${lines}<br><br>Kindly review and advise.<br><br>Thank you.`;
+ }
+
+ const itemErrors=rows.filter(r=>r.type==="Item not found in PO" || r.type==="Barcode not found");
+ if(itemErrors.length){
+   const lines=itemErrors.map(r=>`• <b>${r.po}</b> — VPN <b>${r.sku}</b> / Barcode <b>${r.barcode}</b>: ${r.type}`).join('<br>');
+   return `Hi Team,<br><br>Please note the below item(s) are not found against their respective PO(s):<br><br>${lines}<br><br>Kindly review and advise.<br><br>Thank you.`;
+ }
+
+ const validation=rows.filter(r=>r.type==="PO validation required");
+ if(validation.length){
+   const lines=validation.map(r=>`• <b>${r.po}</b> — VPN <b>${r.sku}</b> / Barcode <b>${r.barcode}</b>: validation required`).join('<br>');
+   return `Hi Team,<br><br>Please review the below item(s):<br><br>${lines}<br><br>Thank you.`;
+ }
+
+ return `Hi Team,<br><br>Please review the below shipment issue: ${s.issue}.<br><br>Thank you.`;
+}
+
+function renderEmails(){
+ document.getElementById('emailList').innerHTML=threads.map(t=>`
+  <div class="email-card" onclick="openThread('${t.shipment}')">
+    <h4>${t.title}</h4><p>${t.summary}</p><div class="note">Open thread →</div>
+  </div>`).join('');
+}
+
+function openShipment(id){
+ const s=shipments.find(x=>x.id===id); if(!s)return;
+ currentShipment=s;
+ document.getElementById('detailTitle').textContent=`Shipment ${s.id}`;
+ document.getElementById('detailStatus').textContent=s.stage;
+ document.getElementById('detailStatus').className='tag '+(s.confirmed?'ok':s.statusGroup==="Running normally"?'ok':s.statusGroup==="Nova handling"?'warn':'bad');
+ document.getElementById('detailBanner').innerHTML=s.confirmed
+  ? `<b>${s.id}</b> is complete. ASN ${s.asn} was confirmed at ${s.confirmedAt}.`
+  : s.issue==="No exception"
+    ? `<b>${s.id}</b> is progressing normally. Nova is handling the shipment up to ASN confirmation.`
+    : `<b>${s.id}</b> requires attention. The ASN cannot proceed because ${s.issue.toLowerCase()}.`;
+ document.getElementById('detailFields').innerHTML=`
+  <div class="field"><span>Brand</span><strong>${s.brand}</strong></div>
+  <div class="field"><span>ASN</span><strong>${s.asn||'Not generated yet'}</strong></div>
+  <div class="field"><span>Invoice</span><strong>${(invoices.find(i=>i.shipment===s.id)||{}).invoice||'—'}</strong></div>
+  <div class="field"><span>POs</span><strong>${s.poText}</strong></div>
+  <div class="field"><span>Pieces</span><strong>${s.pieces}</strong></div>
+  <div class="field"><span>Owner</span><strong>${s.owner}</strong></div>
+  <div class="field"><span>Current Stage</span><strong>${s.stage}</strong></div>`;
+ document.getElementById('progressText').textContent=s.progress+'% complete';
+ document.getElementById('progressBar').style.width=s.progress+'%';
+ document.getElementById('detailRecommendation').innerHTML=s.recommendation + validationDetails(s);
+ const hasThread=threads.some(t=>t.shipment===s.id);
+ document.getElementById('detailActions').innerHTML=s.confirmed
+   ? `<button class="btn primary" onclick="openInvoice('${s.id}')">View Invoice</button><button class="btn" onclick="showASNPrep('${s.id}')">View ASN Record</button><button class="btn" onclick="showView('shipments')">Completed Shipments</button>`
+   : `<button class="btn primary" onclick="openInvoice('${s.id}')">View Invoice</button><button class="btn" onclick="showASNPrep('${s.id}')">ASN Data</button>${hasThread?`<button class="btn" onclick="openThread('${s.id}')">Open Email Thread</button>`:''}`;
+ document.getElementById('detailTimeline').innerHTML=s.timeline.map(t=>`<div class="tl ${t[0]}"><h4>${t[1]}</h4><p>${t[2]}</p><div class="note" style="margin-top:5px">${t[3]||''}</div></div>`).join('');
+ showView('shipmentDetail');
+}
+function openThread(shipmentId){
+ const t=threads.find(x=>x.shipment===shipmentId);
+ const s=shipments.find(x=>x.id===shipmentId);
+ if(!t || !s){showToast('No active email thread in this demo shipment');return;}
+ currentThreadShipment=shipmentId;
+ document.getElementById('threadTitle').textContent=t.title;
+ document.getElementById('threadMessages').innerHTML=t.messages.map(m=>`
+  <div class="thread-msg"><div class="meta"><b>${m[0]}</b> &lt;${m[1]}&gt; <span style="float:right;color:var(--muted)">${m[3]||''}</span></div><p>${m[2]}</p></div>`).join('');
+ document.getElementById('threadRecipients').textContent=s.recipients;
+ document.getElementById('threadRecommendation').textContent=s.recommendation + ' Nova will generate the Reply All draft from the current validation findings.';
+ document.getElementById('threadState').textContent=t.state;
+ showView('threadDetail');
+}
+
+function openEmailModal(shipmentId){
+ const s=shipments.find(x=>x.id===shipmentId);
+ const t=threads.find(x=>x.shipment===shipmentId);
+ if(!s || !t)return;
+
+ currentShipment=s;
+ document.getElementById('modalThread').textContent=t.title;
+ document.getElementById('modalRecipients').textContent=s.recipients;
+ document.getElementById('modalDeliveryRecipient').textContent=demoRecipient;
+ document.getElementById('modalSubject').textContent=t.title;
+
+ const body=buildOperationalEmailBody(shipmentId);
+ document.getElementById('modalBody').innerHTML=body;
+ document.getElementById('modalSubjectEdit').value=t.title;
+ document.getElementById('modalBodyEdit').value=htmlToText(body);
+
+ setEditMode(false);
+ document.getElementById('emailModal').style.display='flex';
+}
+function htmlToText(html){return html.replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]*>/g,'');}
+function textToHtml(text){return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function setEditMode(on){
+ document.getElementById('modalSubject').style.display=on?'none':'block';
+ document.getElementById('modalBody').style.display=on?'none':'block';
+ document.getElementById('modalSubjectEdit').style.display=on?'block':'none';
+ document.getElementById('modalBodyEdit').style.display=on?'block':'none';
+ document.getElementById('editDraftBtn').style.display=on?'none':'inline-block';
+ document.getElementById('saveDraftBtn').style.display=on?'inline-block':'none';
+}
+function editDraft(){
+ document.getElementById('modalSubjectEdit').value=document.getElementById('modalSubject').textContent;
+ document.getElementById('modalBodyEdit').value=htmlToText(document.getElementById('modalBody').innerHTML);
+ setEditMode(true);
+ document.getElementById('modalBodyEdit').focus();
+}
+function saveDraft(){
+ const subject=document.getElementById('modalSubjectEdit').value.trim();
+ const body=document.getElementById('modalBodyEdit').value;
+ if(!subject){showToast('Subject cannot be empty');return;}
+ document.getElementById('modalSubject').textContent=subject;
+ document.getElementById('modalBody').innerHTML=textToHtml(body);
+ setEditMode(false);
+ showToast('Draft changes saved');
+}
+function closeEmailModal(){setEditMode(false);document.getElementById('emailModal').style.display='none'}
+async function sendDraft(){
+  if(document.getElementById('modalBodyEdit').style.display==='block') saveDraft();
+  const shipmentId = currentShipment?.id || 'shipment';
+  const to = demoRecipient;
+  const subject = document.getElementById('modalSubject').textContent;
+  const html = document.getElementById('modalBody').innerHTML;
+  closeEmailModal();
+  showToast(`Sending approved Nova email to ${to}...`);
+  try {
+    const emailEndpoint = (window.location.protocol === "file:")
+      ? "/send-email"
+      : "/send-email";
+    const res = await fetch(emailEndpoint, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,subject,html,shipmentId})});
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok || data.ok === false) throw new Error(data.error || "Email send failed");
+    const t=threads.find(x=>x.shipment===shipmentId);
+    if(t){
+      t.messages.push(["Nova","nova@example",htmlToText(html),formatNow()]);
+      t.state="Sent";
+      t.summary="Latest Reply All sent";
+      renderEmails();
+      if(currentThreadShipment===shipmentId) openThread(shipmentId);
+    }
+    showToast(`Email sent ✓ to ${to}`);
+  } catch (err) {
+    console.error(err); showToast(`Email failed: ${err.message}`);
+  }
+}
+function formatNow(){
+ const d=new Date(); return `Today, ${d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}`;
+}
+let asnProcessTimer=null;
+function closeASNProcess(){
+ if(asnProcessTimer){clearInterval(asnProcessTimer);asnProcessTimer=null;}
+ document.getElementById('asnProcessModal').style.display='none';
+}
+function simulateASN(id){
+ const s=shipments.find(x=>x.id===id); if(!s)return;
+ if(s.stage!=="Ready for ASN"){showToast('This shipment is not ready for ASN confirmation');return;}
+ const inv=invoices.find(i=>i.shipment===id);
+ const modal=document.getElementById('asnProcessModal');
+ const timer=document.getElementById('processTimer');
+ const stepsEl=document.getElementById('processSteps');
+ const result=document.getElementById('processResult');
+ document.getElementById('processTitle').textContent=`Process ASN — ${id}`;
+ result.style.display='none'; result.innerHTML='';
+ timer.textContent='00:00.0';
+ const steps=[
+   ["Validated shipment loaded","Previously completed"],
+   [`Invoice ${inv?inv.invoice:'data'} loaded`,""],
+   ["ASN data prepared: item, QTY, price & invoice number",""],
+   ["Creating ASN",""],
+   ["ASN generated",""],
+   ["Confirming ASN",""],
+   ["Final confirmation logged",""]
+ ];
+ stepsEl.innerHTML=steps.map((x,i)=>`<div class="process-step" id="ps${i}"><span>${x[0]}</span><span id="pst${i}">${x[1]}</span></div>`).join('');
+ modal.style.display='flex';
+
+ const start=performance.now();
+ const milestones=[300,1200,2500,3900,5600,7200,8600];
+ let done=-1;
+ if(asnProcessTimer)clearInterval(asnProcessTimer);
+ asnProcessTimer=setInterval(()=>{
+   const elapsed=performance.now()-start;
+   timer.textContent=`00:${String(Math.floor(elapsed/1000)).padStart(2,'0')}.${Math.floor((elapsed%1000)/100)}`;
+   milestones.forEach((ms,i)=>{
+     const el=document.getElementById(`ps${i}`), tm=document.getElementById(`pst${i}`);
+     if(elapsed>=ms && i>done){
+       for(let j=0;j<i;j++) document.getElementById(`ps${j}`).className='process-step done';
+       el.className='process-step active';
+       if(i<3) tm.textContent=(ms/1000).toFixed(1)+'s';
+       done=i;
+     }
+   });
+   if(elapsed>=9300){
+     clearInterval(asnProcessTimer);asnProcessTimer=null;
+     document.querySelectorAll('.process-step').forEach(e=>e.className='process-step done');
+     document.getElementById('pst4').textContent='6.4s';
+     document.getElementById('pst5').textContent='7.8s';
+     document.getElementById('pst6').textContent='Sending...';
+     timer.textContent='00:09.3';
+     const nextAsn=String(48390 + shipments.filter(x=>x.confirmed).length + 1);
+     s.asn=nextAsn;s.confirmed=true;s.confirmedAt=formatNow();s.confirmedBy="Nova";
+     s.stage="ASN Confirmed — Completed";s.statusGroup="Completed";s.progress=100;s.last=s.confirmedAt;
+     s.recommendation="Completed. No further ASN processing is required.";
+     s.timeline.push(["done","ASN creation started",`Nova prepared ASN data from invoice ${inv?inv.invoice:'record'}.`,formatNow()]);
+     s.timeline.push(["done","ASN generated",`ASN ${nextAsn} generated successfully.`,formatNow()]);
+     s.timeline.push(["done","ASN confirmed",`ASN ${nextAsn} confirmed successfully.`,formatNow()]);
+     document.getElementById('pst6').textContent='Logged ✓';
+     document.getElementById('ps6').className='process-step done';
+     s.timeline.push(["done","Final confirmation logged",`ASN ${nextAsn} confirmation recorded in Nova.`,formatNow()]);
+     result.innerHTML=`<div class="tag ok">ASN CONFIRMED ✓</div><h2 style="margin:10px 0 5px">ASN ${nextAsn}</h2><div><b>ASN confirmed in 7.8 seconds</b></div><div class="note" style="margin-top:7px">Final confirmation recorded in Nova. No email was sent.</div>`;
+     result.style.display='block';
+     renderOverview();renderShipments();renderExceptions();renderASN();
+   }
+ },100);
+}
+
+function processReady(){
+ const ready=shipments.filter(s=>!s.confirmed && s.stage==="Ready for ASN");
+ if(!ready.length){showToast('No clean shipments are waiting for ASN processing');return;}
+ simulateASN(ready[0].id);
+}
+function toggleControl(el,name){el.classList.toggle('on');showToast(`${name} ${el.classList.contains('on')?'enabled':'disabled'} — demo`)}
+
+function saveDemoRecipient(){
+ const input=document.getElementById('demoRecipientInput');
+ const value=input.value.trim();
+ if(!value || !value.includes('@')){showToast('Enter a valid email address');return;}
+ demoRecipient=value;
+ localStorage.setItem('novaDemoRecipient', demoRecipient);
+ document.getElementById('demoRecipientLabel').textContent=demoRecipient;
+ document.getElementById('modalDeliveryRecipient').textContent=demoRecipient;
+ showToast(`Demo recipient saved: ${demoRecipient}`);
+}
+
+function syncDemoRecipient(){
+ const label=document.getElementById('demoRecipientLabel');
+ const input=document.getElementById('demoRecipientInput');
+ if(label) label.textContent=demoRecipient;
+ if(input) input.value=demoRecipient;
+}
+
+function chatTime(){
+ return new Intl.DateTimeFormat('en-GB',{hour:'numeric',minute:'2-digit'}).format(new Date());
+}
+function addChatMessage(role,html){
+ const h=document.getElementById('chatHistory');
+ h.style.display='block';
+ const row=document.createElement('div');
+ row.className='chat-msg '+role;
+ row.innerHTML=`<div class="chat-bubble">${html}</div><div class="chat-meta">${role==='nova'?'NOVA':'You'} · ${chatTime()}</div>`;
+ h.appendChild(row);
+ h.scrollTop=h.scrollHeight;
+}
+function shipmentLink(s){
+ return `<div class="chat-open" onclick="openShipment('${s.id}')">Open ${s.id} →</div>`;
+}
+function nextStepFor(s){
+ if(s.confirmed){
+   return `<b>${s.id}</b> is complete. ASN <b>${s.asn}</b> was confirmed ${s.confirmedAt||''}. <b>Next step:</b> No further action is required from Shipping & Transport.`+shipmentLink(s);
+ }
+ if(s.stage==="Ready for ASN"){
+   return `<b>${s.id}</b> has passed validation and the ASN has not been generated yet. <b>Next step:</b> Generate and confirm the ASN. Once confirmed, Nova will move the shipment to ASN Confirmed — Completed.`+shipmentLink(s);
+ }
+ if(s.stage==="ASN blocked"){
+   return `<b>${s.id}</b> is blocked before ASN generation because ${s.issue.toLowerCase()}. <b>Next step:</b> ${s.recommendation}`+shipmentLink(s);
+ }
+ if(s.stage==="Quantity mismatch"){
+   return `<b>${s.id}</b> is blocked before ASN generation. ${s.issue}. <b>Next step:</b> ${s.recommendation}`+shipmentLink(s);
+ }
+ if(s.stage==="Awaiting BU"){
+   return `<b>${s.id}</b> is waiting on the Business Unit. ${s.issue}. <b>Next step:</b> ${s.recommendation}`+shipmentLink(s);
+ }
+ if(s.stage==="Barcode review" || s.stage==="PO review"){
+   return `<b>${s.id}</b> requires review before ASN generation because ${s.issue.toLowerCase()}. <b>Next step:</b> ${s.recommendation}`+shipmentLink(s);
+ }
+ if(s.stage==="Validating"){
+   return `<b>${s.id}</b> is currently being validated by Nova. <b>Next step:</b> No human action is required yet. Nova will either move it to Ready for ASN or flag an exception if validation fails.`+shipmentLink(s);
+ }
+ return `<b>${s.id}</b> is currently at <b>${s.stage}</b>. <b>Next step:</b> ${s.recommendation}`+shipmentLink(s);
+}
+function ask(text){
+ const input=document.getElementById('query');
+ const q=(text||input.value||'').trim();
+ if(!q)return;
+ input.value='';
+ addChatMessage('user',q.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+ const lower=q.toLowerCase();
+
+ // Shipment-specific questions: read the actual shipment record.
+ const idMatch=q.match(/SHP-\d+/i);
+ if(idMatch){
+   const id=idMatch[0].toUpperCase();
+   const s=shipments.find(x=>x.id===id);
+   if(!s){
+     addChatMessage('nova',`I couldn't find <b>${id}</b> in Nova's current shipment dataset.`);
+     return;
+   }
+   if(/next|what.*do|action|step|proceed/.test(lower)){
+     addChatMessage('nova',nextStepFor(s)); return;
+   }
+   if(/why|block|issue|problem|error|holding/.test(lower)){
+     const rows=validationIssues[s.id]||[];
+     const detail=rows.length?'<br>'+rows.map(r=>`• VPN <b>${r.sku}</b> / Barcode <b>${r.barcode||'—'}</b> / ${r.po}: ${r.type} — ${r.detail}${r.incident?` (${r.incident})`:''}`).join('<br>'):'';
+     const ans=s.confirmed
+       ? `<b>${s.id}</b> is not blocked; it is already completed with ASN <b>${s.asn}</b>.`
+       : (s.issue==="No exception"
+          ? `<b>${s.id}</b> currently has no exception. Its stage is <b>${s.stage}</b>.`
+          : `<b>${s.id}</b> is at <b>${s.stage}</b>. The current issue is: ${s.issue}.${detail}`);
+     addChatMessage('nova',ans+shipmentLink(s)); return;
+   }
+   if(/invoice|item|qty|quantity|price|sku/.test(lower)){
+     const inv=invoices.find(i=>i.shipment===s.id);
+     if(inv){
+       addChatMessage('nova',`<b>${s.id}</b> uses invoice <b>${inv.invoice}</b> with ${inv.items.length} item lines and a demo value of <b>AED ${money(invoiceTotal(inv))}</b>.<div class="chat-open" onclick="showASNPrep('${s.id}')">Open ASN data →</div><div class="chat-open" onclick="openInvoice('${s.id}')">View invoice →</div>`);
+     } else addChatMessage('nova',`No invoice data is available for ${s.id}.`);
+     return;
+   }
+   if(/email|sent|communication|reply|bu/.test(lower)){
+     const t=threads.find(x=>x.shipment===s.id);
+     let ans=t
+       ? `<b>${s.id}</b> has an operational email thread: <b>${t.state}</b>. ${t.summary}.`
+       : `<b>${s.id}</b> has no exception email thread requiring action in this demo.`;
+     addChatMessage('nova',ans+shipmentLink(s)); return;
+   }
+   if(/status|where|update|happened|timeline/.test(lower)){
+     const last=s.timeline[s.timeline.length-1];
+     addChatMessage('nova',`<b>${s.id}</b> — ${s.brand}<br>Status: <b>${s.stage}</b><br>Issue: ${s.issue}<br>Latest event: ${last[1]} — ${last[2]} (${last[3]}).`+shipmentLink(s)); return;
+   }
+   addChatMessage('nova',nextStepFor(s)); return;
+ }
+
+ if(/need.*attention|attention|exception/.test(lower)){
+   const list=shipments.filter(s=>!s.confirmed && s.statusGroup==="Needs attention");
+   addChatMessage('nova',`<b>${list.length} shipments need attention.</b><br>`+
+     list.map(s=>`• <b>${s.id}</b> (${s.brand}) — ${s.issue}`).join('<br>')); return;
+ }
+ if(/ready.*asn|asn.*ready/.test(lower)){
+   const list=shipments.filter(s=>!s.confirmed && s.stage==="Ready for ASN");
+   addChatMessage('nova',`<b>${list.length} shipments are ready for ASN generation and confirmation.</b><br>`+
+     list.map(s=>`• <b>${s.id}</b> — ${s.brand}`).join('<br>')); return;
+ }
+ if(/confirm|completed|complete/.test(lower)){
+   const list=shipments.filter(s=>s.confirmed);
+   addChatMessage('nova',`Nova currently shows <b>${list.length} completed shipments</b> with confirmed ASNs.<br>`+
+     list.map(s=>`• <b>${s.id}</b> — ASN ${s.asn} (${s.confirmedAt})`).join('<br>')); return;
+ }
+ if(/sephora|dior|lacoste|guess|dyson|occitane/.test(lower)){
+   const brand = ["Sephora","Dior","Lacoste","Guess","Dyson","L'Occitane"].find(b=>lower.includes(b.toLowerCase().replace("'",""))) ||
+                 (lower.includes("occitane") ? "L'Occitane" : null);
+   const list=shipments.filter(s=>s.brand===brand && !s.confirmed);
+   addChatMessage('nova',`I found <b>${list.length} active ${brand} shipment${list.length===1?'':'s'}</b>.<br>`+
+     list.map(s=>`• <b>${s.id}</b> — ${s.stage}${s.issue!=="No exception"?" — "+s.issue:""}`).join('<br>')); return;
+ }
+ if(/48|inactive|not moved|stale/.test(lower)){
+   addChatMessage('nova',`The oldest active follow-up is <b>SHP-29342</b> (Lacoste), which is awaiting a Business Unit response. Nova recommends following up in the existing email thread.`); return;
+ }
+ if(/next.*shipment|work on next|priority/.test(lower)){
+   const priorities=shipments.filter(s=>!s.confirmed && s.statusGroup==="Needs attention");
+   const s=priorities[0] || shipments.find(s=>!s.confirmed);
+   addChatMessage('nova',s?`I would review <b>${s.id}</b> next. ${s.issue}. ${s.recommendation}`+shipmentLink(s):"There are no active shipments requiring action."); return;
+ }
+
+ addChatMessage('nova',`I can answer from Nova's shipment data. Try asking for a shipment's <b>next step</b>, <b>status</b>, <b>blocker</b>, <b>invoice/items</b>, <b>email status</b>, shipments <b>ready for ASN</b>, or confirmed <b>ASN records</b>.`);
+}
+function showToast(msg){
+ const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);
+ window.toastTimer=setTimeout(()=>t.style.display='none',2600);
+}
+document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
+document.getElementById('emailModal').addEventListener('click',e=>{if(e.target.id==='emailModal')closeEmailModal()});
+
+window.addEventListener('click',e=>{if(e.target?.id==='invoiceModal')closeInvoice();if(e.target?.id==='asnProcessModal')closeASNProcess();});
+renderOverview(); renderBrandFilter(); renderShipments(); renderExceptions(); renderASN(); renderEmails(); syncDemoRecipient();
+</script>
+</body>
+</html>
